@@ -1,0 +1,19 @@
+Установка
+$ ./install.sh
+
+Развернуть Debian Bullseye
+$ sudo debootstrap.sh --mirror bullseye
+
+Вход в chroot
+$ sudo debootstrap.sh --login /var/cache/pbuilder/bullseye-chroot.tgz
+
+Сборка пакета
+$ cd ~/sources/coreutils/coreutils-8.32/
+$ sudo debootstrap.sh --build /var/cache/pbuilder/bullseye-chroot.tgz --sound
+Пакеты будут лежать в /var/cache/pbuilder/result/
+Последняя актуальная сборка /var/cache/pbuilder/result/last
+Предпоследняя сборка /var/cache/pbuilder/result/prelast
+
+Сборка ядра hardened и headers
+$ cd ~/sources/linux
+$ sudo debootstrap.sh --build-hardened-only /var/cache/pbuilder/bullseye-chroot.tgz
