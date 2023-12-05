@@ -4,16 +4,16 @@ $ ./install.sh
 Bootstrap Debian Bullseye
 $ sudo debootstrap.sh --mirror bullseye
 
-Go to chroot
-$ sudo debootstrap.sh --login /var/cache/pbuilder/bullseye-chroot.tgz
-
-Build package (example)
+Build Debian package (example)
 $ cd ~/sources/coreutils/coreutils-8.32/
 $ sudo debootstrap.sh --build /var/cache/pbuilder/bullseye-chroot.tgz --sound
-The packages will be in /var/cache/pbuilder/result/
-Last actual build /var/cache/pbuilder/result/last
-Penultimate build /var/cache/pbuilder/result/prelast
+The packages will be in: /var/cache/pbuilder/result/
+Last actual build: /var/cache/pbuilder/result/last
+Penultimate build: /var/cache/pbuilder/result/prelast
 
 Build kernel hardened with headers
 $ cd ~/sources/linux
 $ sudo debootstrap.sh --build-hardened-only /var/cache/pbuilder/bullseye-chroot.tgz
+
+Go to chroot
+$ sudo debootstrap.sh --login /var/cache/pbuilder/bullseye-chroot.tgz
