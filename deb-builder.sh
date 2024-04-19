@@ -119,10 +119,8 @@ _pdebuild()
 	unset DEB_BUILD_OPTIONS
 
 	if [ "$2" == "--sound" ]; then
-		wav_path=/usr/share/sounds/for-script/prompt.wav
-		if [ -e $wav_path ]; then
-			aplay $wav_path
-		fi
+		wav_path=/usr/share/sounds/for-deb-builder/prompt.wav
+		[ -e $wav_path ] && aplay $wav_path
 	fi
 }
 
