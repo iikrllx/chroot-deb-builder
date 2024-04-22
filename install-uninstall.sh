@@ -4,8 +4,7 @@ set -ex
 
 case $1 in
 	'install')
-		for f in builder.sh chroot-env.sh deb-builder.sh
-		do
+		for f in chroot-env.sh deb-builder.sh; do
 			sudo install $f /usr/local/bin
 		done
 
@@ -14,11 +13,12 @@ case $1 in
 	;;
 
 	'uninstall')
-		for f in builder.sh chroot-env.sh deb-builder.sh
-		do
+		for f in chroot-env.sh deb-builder.sh; do
 			sudo rm /usr/local/bin/$f
 		done
 
 		sudo rm -rf /usr/share/sounds/for-deb-builder
 	;;
+
+	*) echo "Please, use 'install' or 'uninstall option'" ;;
 esac

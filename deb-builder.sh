@@ -9,23 +9,27 @@ fi
 
 usage()
 {
+if (( $1 )); then
+	>&2 echo "Try '$(basename $0) --help' for more information"
+	exit 1
+else
 cat << EOF
 $(echo -e "\e[96mUsage: $(basename $0) [options]\e[0m")
 Wrapper for debootstrap and pbuilder.
-Build a Debian package in chroot.
+Build a Debian package in a chroot.
 
-Options:
-  --mirror [suite]                            create system from 'http://deb.debian.org/debian' URL
-  --iso [suite] [iso-full-path]               create system from ISO file 'file://media/cdrom' URL
-  --login [path-to-tgz]                       login to tgz with save mode
-  --build [path-to-tgz]                       clean build package (without dbgsym)
-  --build-debug [path-to-tgz]                 package build with including debug symbols
-  --build-hardened-only [path-to-tgz]         build hardened kernel + headers
-  --build-generic-only [path-to-tgz]          build generic kernel + headers
-  --sound                                     make sound after build
+  Options:
+  --mirror [suite]                           create system from 'http://deb.debian.org/debian' URL
+  --iso [suite] [iso-full-path]              create system from ISO file 'file://media/cdrom' URL
+  --login [path-to-tgz]                      login to tgz with save mode
+  --build [path-to-tgz]                      clean build package (without dbgsym)
+  --build-debug [path-to-tgz]                package build with including debug symbols
+  --sound                                    make sound after build (use together with build options)
 
 EOF
-exit $1
+
+exit 0
+fi
 }
 
 arch=amd64
@@ -48,7 +52,9 @@ create_chroot()
 {
 	suite="$2"
 	iso_name="${3##*/}"
-	target="/$suite-chroot${iso_name/.iso}"
+
+	[ -z $iso_name ] && target="/$suite-chroot${iso_name/.iso}" || \
+	target="/$suite-chroot-${iso_name/.iso}"
 
 	if mount | grep $target &>/dev/null; then
 		>&2 echo -e "\e[91mERROR (!) chroot '$target' already to use\e[0m"
@@ -118,23 +124,35 @@ _pdebuild()
 
 	unset DEB_BUILD_OPTIONS
 
-	if [ "$2" == "--sound" ]; then
+	if (( $sound_option )); then
 		wav_path=/usr/share/sounds/for-deb-builder/prompt.wav
 		[ -e $wav_path ] && aplay $wav_path
 	fi
 }
 
 case $1 in
-	"--mirror") [ ! -z $2 ] && \
-		launch $1 $2 ;;
+	"--mirror")
+		[ $# != 2 ] && usage 1
+		launch $1 $2
+	;;
 
-	"--iso") [ ! -z $2 ] && [ ! -z $3 ] && \
-		launch $1 $2 $3 ;;
+	"--iso")
+		[ $# != 3 ] && usage 1
+		launch $1 $2 $3
+	;;
 
-	"--build") [ ! -z $2 ] && \
+	"--login")
+		[ $# != 2 ] && usage 1
+		pbuilder --login --save-after-login --basetgz $2
+	;;
+
+	"--build")
+		[ -z $2 ] && usage 1
+		[ $3 == "--sound"] && sound_option=1
+
 		# nocheck - not run tests
 		export DEB_BUILD_OPTIONS='nocheck'
-		_pdebuild $2 $3
+		_pdebuild $2
 
 		find $result_dir/$dir_format/bin -name "*dbgsym*" -delete
 
@@ -151,38 +169,23 @@ case $1 in
 		fi
 	;;
 
-	"--build-debug") [ ! -z $2 ] && \
+	"--build-debug")
+		[ -z $2 ] && usage 1
+		[ $3 == "--sound"] && sound_option=1
+
 		# noopt - O0 / nostrip - debug symbols have / debug - enable debug info
 		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug'
-		_pdebuild $2 $3
+		_pdebuild $2
 
 		touch $result_dir/$dir_format/bin/DEBUG
 		chown ${SUDO_USER}: $result_dir/$dir_format/bin/DEBUG
 	;;
 
-	"--login") [ ! -z $2 ] && \
-		pbuilder --login --save-after-login --basetgz $2 ;;
-
-	"--build-hardened-only" | "--build-generic-only")
-		if [ ! -z $2 ]; then
-			pdir=$(dirname $2)
-      			custom=$pdir/build/custom
-      			package=$(basename `pwd`)
-
-			if [ ! -d $custom ]; then
-				mkdir $custom
-				tar -xvzf $2 -C $custom
-			fi
-
-			[ ! -d $custom/home/builder/$package ] && cp -r $(pwd) $custom/home/builder
-			cp /usr/local/bin/builder.sh $custom/usr/local/bin
-			mount_staff $custom
-
-			trap 'umount_staff $custom' SIGINT ERR
-			LANG=C chroot $custom builder.sh $1 $package
-			umount_staff $custom
-		fi
+	"-h"|"--help")
+		usage 0
 	;;
 
-	*) usage 1 ;;
+	*)
+		usage 1
+	;;
 esac

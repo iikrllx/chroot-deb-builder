@@ -21,24 +21,27 @@ Bootstrap Debian Bullseye:
 $ sudo deb-builder.sh --mirror bullseye
 ```
 
+Bootstrap a chroot from ISO file:
+```
+$ sudo deb-builder.sh --iso <suite> /path/to/my/iso
+```
+
 Example of building a Debian package:
 ```
 $ mkdir -p ~/sources/coreutils
 $ cd ~/sources/coreutils
 $ apt-get source coreutils
 $ cd coreutils-9.1
+$ sudo deb-builder.sh --build /var/cache/pbuilder/bullseye-chroot.tgz
+```
+or with sound:
+```
 $ sudo deb-builder.sh --build /var/cache/pbuilder/bullseye-chroot.tgz --sound
 ```
 
 The packages will be in: ```/var/cache/pbuilder/result```<br/>
 The last actual build: ```/var/cache/pbuilder/result/last```<br/>
 The penultimate build: ```/var/cache/pbuilder/result/prelast```<br/>
-
-Build kernel hardened with headers:
-```
-$ cd ~/sources/linux
-$ sudo deb-builder.sh --build-hardened-only /var/cache/pbuilder/bullseye-chroot.tgz
-```
 
 Go to chroot:
 ```
