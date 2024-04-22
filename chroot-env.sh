@@ -40,6 +40,9 @@ cat << EOF >> /home/$user/.bashrc
 PS1='bullseye-${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
 export HISTCONTROL=ignoredups
 export EDITOR='/usr/bin/vim'
+
+alias _date='date +"%d/%m/%Y - %H:%M:%S"'
+alias ls='ls -1l --color'
 EOF
 
 mkdir /home/$user/sources
