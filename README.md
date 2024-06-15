@@ -3,10 +3,10 @@
 </a>
 
 # chroot-deb-builder
-Automatic building of a ```deb``` package in a chroot. Maintainers usually do not build packages
-on their host machines, but do it in chroots. The ```deb-builder.sh``` script is a wrapper
-around ```pbuilder``` and ```debootstrap``` (excellent tools that automate the package building
-process and chroot creation). ```deb-builder.sh``` combines these tools into one.
+Automatic building of a ```deb``` package in a chroot. Maintainers usually do not build packages on
+their host machines, but do it in chroots. The ```deb-builder.sh``` script is a wrapper around
+```pbuilder```, ```pdebuild``` and ```debootstrap``` (excellent tools that automate the package
+building process and chroot creation). ```deb-builder.sh``` combines these tools into one.
 
 ## Cloning and installing
 ```
