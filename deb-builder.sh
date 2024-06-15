@@ -15,7 +15,7 @@ if (( $1 )); then
 else
 cat << EOF
 $(echo -e "\e[96mUsage: $(basename $0) [options]\e[0m")
-Wrapper for debootstrap and pbuilder.
+Wrapper for pbuilder, pdebuild and debootstrap.
 Build a Debian package in a chroot.
 
   Options:
