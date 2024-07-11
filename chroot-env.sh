@@ -48,7 +48,7 @@ export DEBEMAIL=krekhov.dev@mail.ru
 export DEBFULLNAME="Kirill Rekhov"
 
 alias cc='xsel -p -c; xsel -b -c' # clear primary/clipboard selections
-alias datec='date -R | xsel -b -i' # input date (RFC 5322) to clipboard (for changelog)
+alias daterc='date -R | xsel -b -i' # input date (RFC 5322) to clipboard (for changelog)
 alias _date='date +"%d/%m/%Y - %H:%M:%S"' # simple format
 alias ls='ls -1l --group-directories-first -hN --color'
 alias la='ls -A --color'
