@@ -7,7 +7,7 @@ deb http://deb.debian.org/debian $1 main contrib non-free
 deb-src http://deb.debian.org/debian $1 main contrib non-free
 EOF
 
-packages=(dialog sudo locales vim mc gcc make bash-completion \
+packages=(dialog sudo locales vim mc gcc make bash-completion xsel \
 build-essential dpkg-dev devscripts debhelper dh-make fakeroot eatmydata aptitude)
 
 apt-get update
@@ -29,20 +29,46 @@ for loc in en_US.UTF-8 ru_RU.UTF-8; do
 	fi
 done
 
+# enable bash completion
 perl -i -pe '$i++ if /^#if ! shopt -oq posix;/; s/^#// if $i==1; $i=0 if /^fi/' /etc/bash.bashrc
+
+# sudo prompt add suite
 sed -i "s/PS1='\${debian_chroot/PS1='$1-\${debian_chroot/" /etc/bash.bashrc
+
 echo >> /etc/bash.bashrc
 echo "alias mc='mc -S gotar'" >> /etc/bash.bashrc
 echo "TERM=xterm-256color" >> /etc/bash.bashrc
 
-cat << EOF >> /home/$user/.bashrc
+cat << \EOF >> /home/$user/.bashrc
 
-PS1='bullseye-${debian_chroot:+($debian_chroot)}\u@\h:\w\$ '
+export LANG=en_US.UTF8
 export HISTCONTROL=ignoredups
 export EDITOR='/usr/bin/vim'
+export DEBEMAIL=krekhov.dev@mail.ru
+export DEBFULLNAME="Kirill Rekhov"
 
-alias _date='date +"%d/%m/%Y - %H:%M:%S"'
-alias ls='ls -1l --color'
+alias cc='xsel -p -c; xsel -b -c' # clear primary/clipboard selections
+alias datec='date -R | xsel -b -i' # input date (RFC 5322) to clipboard (for changelog)
+alias _date='date +"%d/%m/%Y - %H:%M:%S"' # simple format
+alias ls='ls -1l --group-directories-first -hN --color'
+alias la='ls -A --color'
+alias grep='grep --color'
+alias diff='diff --color'
+alias rm='rm -v'
+alias cp='cp -vi'
+alias mv='mv -vi'
+alias mkdir='mkdir -v'
+alias v='vim'
+
+# touch file with verbose mode =)
+vtouch()
+{
+    for i do
+        touch "$i"
+        [ $? == 0 ] && echo "touched: '$i'"
+    done
+} && alias touch='vtouch'
+
 EOF
 
 mkdir /home/$user/sources
