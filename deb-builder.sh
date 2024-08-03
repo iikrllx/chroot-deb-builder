@@ -148,7 +148,7 @@ case $1 in
 
 	"--build")
 		[ -z $2 ] && usage 1
-		[ $3 == "--sound"] && sound_option=1
+		[ "$3" == "--sound" ] && sound_option=1
 
 		# nocheck - not run tests
 		export DEB_BUILD_OPTIONS='nocheck'
@@ -171,7 +171,7 @@ case $1 in
 
 	"--build-debug")
 		[ -z $2 ] && usage 1
-		[ $3 == "--sound"] && sound_option=1
+		[ "$3" == "--sound" ] && sound_option=1
 
 		# noopt - O0 / nostrip - debug symbols have / debug - enable debug info
 		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug'
