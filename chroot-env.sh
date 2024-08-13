@@ -42,6 +42,7 @@ echo "TERM=xterm-256color" >> /etc/bash.bashrc
 cat << \EOF >> /home/$user/.bashrc
 
 export LANG=en_US.UTF8
+export LC_ALL=en_US.UTF-8
 export HISTCONTROL=ignoredups
 export EDITOR='/usr/bin/vim'
 export DEBEMAIL=krekhov.dev@mail.ru
