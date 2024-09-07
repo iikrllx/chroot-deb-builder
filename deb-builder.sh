@@ -21,7 +21,8 @@ Build a Debian package in a chroot.
   Options:
   --mirror [suite]                           create system from 'http://deb.debian.org/debian' URL
   --iso [suite] [iso-full-path]              create system from ISO file 'file://media/cdrom' URL
-  --login [path-to-tgz]                      login to tgz with save mode
+  --login [path-to-tgz]                      login to tgz
+  --login-save [path-to-tgz]                 login to tgz with save mode
   --build [path-to-tgz]                      default build package (clean)
   --build-debug [path-to-tgz]                package build with including debug symbols
   --sound                                    make sound after build (use together with build options)
