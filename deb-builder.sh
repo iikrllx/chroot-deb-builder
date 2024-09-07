@@ -143,6 +143,11 @@ case $1 in
 
 	"--login")
 		[ $# != 2 ] && usage 1
+		pbuilder --login --basetgz $2
+	;;
+
+	"--login-save")
+		[ $# != 2 ] && usage 1
 		pbuilder --login --save-after-login --basetgz $2
 	;;
 
