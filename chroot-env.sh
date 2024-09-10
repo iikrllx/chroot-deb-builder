@@ -8,7 +8,8 @@ deb-src http://deb.debian.org/debian $1 main contrib non-free
 EOF
 
 packages=(dialog sudo locales vim mc gcc make bash-completion xsel \
-build-essential dpkg-dev devscripts debhelper dh-make fakeroot eatmydata aptitude)
+build-essential dpkg-dev devscripts debhelper dh-make fakeroot \
+eatmydata aptitude apt-file lintian adequate piuparts blhc)
 
 apt-get update
 for pack in ${packages[*]}; do
