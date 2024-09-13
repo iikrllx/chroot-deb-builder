@@ -60,6 +60,7 @@ alias rm='rm -v'
 alias cp='cp -vi'
 alias mv='mv -vi'
 alias mkdir='mkdir -v'
+alias a='sudo aptitude'
 alias v='vim'
 
 # touch file with verbose mode =)
