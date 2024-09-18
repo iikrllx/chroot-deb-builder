@@ -102,12 +102,12 @@ _pdebuild()
 	result_dir=/var/cache/pbuilder/result
 
 	pdebuild --debbuildopts --source-option='-itags' \
-	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1 | tee /tmp/build.log
+	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
 
 	mkdir $result_dir/$dir_format/bin
 	mv $result_dir/$dir_format/*.deb $result_dir/$dir_format/bin
 	cp ../*orig* $result_dir/$dir_format
-	mv /tmp/build.log $result_dir/$dir_format
+	cp ../*.build $result_dir/$dir_format
 
 	find $result_dir/$dir_format -type f -exec chmod 644 {} +
 	chown -R ${SUDO_USER}: $result_dir/$dir_format
