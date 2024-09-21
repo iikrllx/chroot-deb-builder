@@ -106,7 +106,7 @@ _pdebuild()
 
 	mkdir $result_dir/$dir_format/bin
 	mv $result_dir/$dir_format/*.deb $result_dir/$dir_format/bin
-	cp ../*orig* $result_dir/$dir_format
+	cp ../*orig.tar.* $result_dir/$dir_format
 	cp ../*.build $result_dir/$dir_format
 
 	find $result_dir/$dir_format -type f -exec chmod 644 {} +
