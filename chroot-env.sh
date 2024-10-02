@@ -46,7 +46,7 @@ export LANG=en_US.UTF8
 export LC_ALL=en_US.UTF-8
 export HISTCONTROL=ignoredups
 export EDITOR='/usr/bin/vim'
-export DEBEMAIL=krekhov.dev@mail.ru
+export DEBEMAIL=krekhov.dev@gmail.com
 export DEBFULLNAME="Kirill Rekhov"
 
 alias cc='xsel -p -c; xsel -b -c' # clear primary/clipboard selections
