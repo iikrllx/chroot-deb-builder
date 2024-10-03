@@ -106,7 +106,7 @@ _pdebuild()
 	pdebuild --debbuildopts --source-option='-itags' \
 	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
 
-	chown $SUDO_USER: $(find ../ -type f -maxdepth 1)
+	chown $SUDO_USER: $(find ../ -maxdepth 1 -type f)
 	cp ../*orig.tar.* $result_dir/$dir_format
 	cp ../*amd64.build $result_dir/$dir_format
 
