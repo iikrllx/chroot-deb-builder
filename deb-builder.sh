@@ -15,17 +15,17 @@ if (( $1 )); then
 else
 cat << EOF
 $(echo -e "\e[96mUsage: $(basename $0) [options]\e[0m")
-Wrapper for pbuilder, pdebuild and debootstrap.
-Build a Debian package in a chroot.
+Script wrapper for pdebuild, pbuilder, debootstrap.
+Build a Debian package in a chroot with some checks.
 
   Options:
   --mirror [suite]                           create system from 'http://deb.debian.org/debian' URL
   --iso [suite] [iso-full-path]              create system from ISO file 'file://media/cdrom' URL
   --login [path-to-tgz]                      login to tgz
   --login-save [path-to-tgz]                 login to tgz with save mode
-  --build [path-to-tgz]                      default build package (clean)
+  --build [path-to-tgz]                      default build package without tests (nocheck)
+  --build [path-to-tgz] with-tests           default build package with tests
   --build-debug [path-to-tgz]                package build with including debug symbols
-  --sound                                    make sound after build (use together with build options)
 
 EOF
 
@@ -73,6 +73,8 @@ create_chroot()
 	fi
 
 	cp /usr/local/bin/chroot-env.sh $target/usr/local/bin
+	cp /usr/local/bin/deb-checks.sh $target/usr/local/bin
+	chmod 755 $target/usr/local/bin/deb-checks.sh
 	cp /etc/hosts $target/etc
 	mount_staff $target
 }
@@ -104,13 +106,9 @@ _pdebuild()
 	pdebuild --debbuildopts --source-option='-itags' \
 	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
 
-	mkdir $result_dir/$dir_format/bin
-	mv $result_dir/$dir_format/*.deb $result_dir/$dir_format/bin
+	chown $SUDO_USER: $(find ../ -type f -maxdepth 1)
 	cp ../*orig.tar.* $result_dir/$dir_format
-	cp ../*.build $result_dir/$dir_format
-
-	find $result_dir/$dir_format -type f -exec chmod 644 {} +
-	chown -R ${SUDO_USER}: $result_dir/$dir_format
+	cp ../*amd64.build $result_dir/$dir_format
 
 	for link in last prelast; do
 		[ -L $result_dir/$link ] && rm $result_dir/$link
@@ -125,11 +123,30 @@ _pdebuild()
 	fi
 
 	unset DEB_BUILD_OPTIONS
+}
 
-	if (( $sound_option )); then
-		wav_path=/usr/share/sounds/for-deb-builder/prompt.wav
-		[ -e $wav_path ] && aplay $wav_path
-	fi
+# follow debian policy recommendations using tools
+post_build_tasks()
+{
+	mkdir $result_dir/$dir_format/checks
+	duck > $result_dir/$dir_format/checks/duck 2>&1 >/dev/null || true
+	licensecheck . > $result_dir/$dir_format/checks/licensecheck || true
+
+	blhc --all --debian --arch=amd64 ../*amd64.build > \
+	$result_dir/$dir_format/checks/blhc || true
+
+	# before lintian - avoid EACCESS
+	chown -R $SUDO_USER: $result_dir/$dir_format
+
+	sudo -u $SUDO_USER lintian -i -I --show-overrides $result_dir/$dir_format/*amd64.changes \
+	--tag-display-limit 0 > $result_dir/$dir_format/checks/lintian
+
+	mkdir $result_dir/$dir_format/bin
+	# *deb: `udeb` and `deb`
+	mv $result_dir/$dir_format/*deb $result_dir/$dir_format/bin
+
+	find $result_dir/$dir_format -type f -exec chmod 644 {} +
+	chown -R $SUDO_USER: $result_dir/$dir_format
 }
 
 case $1 in
@@ -155,35 +172,31 @@ case $1 in
 
 	"--build")
 		[ -z $2 ] && usage 1
-		[ "$3" == "--sound" ] && sound_option=1
 
-		# nocheck - not run tests
-		#export DEB_BUILD_OPTIONS='nocheck'
-		_pdebuild $2
+		# not run tests
+		export DEB_BUILD_OPTIONS='nocheck'
 
-		upload=/srv/ftp/upload
-		if [ -d $upload ]; then
-			f=$(basename $(find $result_dir/$dir_format -name *.dsc -type f))
-			ff=${f/.dsc}
-
-			[ -d $upload/$ff ] && rm -rf $upload/$ff
-			mkdir $upload/$ff
-
-			cp -r $result_dir/$dir_format/* $upload/$ff
-			chown -R ${SUDO_USER}: $upload/$ff
+		if [ $3 == "with-tests" ]; then
+			unset DEB_BUILD_OPTIONS
 		fi
+
+		_pdebuild $2
+		post_build_tasks
 	;;
 
 	"--build-debug")
 		[ -z $2 ] && usage 1
-		[ "$3" == "--sound" ] && sound_option=1
 
-		# noopt - O0 / nostrip - debug symbols have / debug - enable debug info
+		# nocheck - not run tests
+		# noopt - O0
+		# nostrip - debug symbols have
+		# debug - enable debug info
 		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug'
 		_pdebuild $2
+		post_build_tasks
 
 		touch $result_dir/$dir_format/bin/DEBUG
-		chown ${SUDO_USER}: $result_dir/$dir_format/bin/DEBUG
+		chown $SUDO_USER: $result_dir/$dir_format/bin/DEBUG
 	;;
 
 	"-h"|"--help")

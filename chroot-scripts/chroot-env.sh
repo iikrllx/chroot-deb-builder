@@ -54,14 +54,16 @@ alias daterc='date -R | xsel -b -i' # input date (RFC 5322) to clipboard (for ch
 alias _date='date +"%d/%m/%Y - %H:%M:%S"' # simple format
 alias ls='ls -1l --group-directories-first -hN --color'
 alias la='ls -A --color'
+alias v='vim'
+alias c='cd ~/'
+alias a='sudo aptitude'
+alias brc='vim ~/.bashrc'
 alias grep='grep --color'
 alias diff='diff --color'
 alias rm='rm -v'
 alias cp='cp -vi'
 alias mv='mv -vi'
 alias mkdir='mkdir -v'
-alias a='sudo aptitude'
-alias v='vim'
 
 # touch file with verbose mode =)
 vtouch()
