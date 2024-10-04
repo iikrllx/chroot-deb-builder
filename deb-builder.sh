@@ -106,9 +106,15 @@ _pdebuild()
 	pdebuild --debbuildopts --source-option='-itags' \
 	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
 
+	mkdir $result_dir/$dir_format/bin
+	mv $result_dir/$dir_format/*deb $result_dir/$dir_format/bin
+
 	chown $SUDO_USER: $(find ../ -maxdepth 1 -type f)
 	cp ../*orig.tar.* $result_dir/$dir_format
 	cp ../*amd64.build $result_dir/$dir_format
+
+	chown -R $SUDO_USER: $result_dir/$dir_format
+	find $result_dir/$dir_format -type f -exec chmod 644 {} +
 
 	for link in last prelast; do
 		[ -L $result_dir/$link ] && rm $result_dir/$link
@@ -136,16 +142,11 @@ post_build_tasks()
 	blhc --all --debian --arch=amd64 ../*amd64.build > \
 	$result_dir/$dir_format/checks/blhc 2>&1 || true
 
-	# before lintian - avoid EACCESS
-	chown -R $SUDO_USER: $result_dir/$dir_format
-
+	mv $result_dir/$dir_format/bin/*deb $result_dir/$dir_format
 	sudo -u $SUDO_USER lintian -i -I --show-overrides $result_dir/$dir_format/*amd64.changes \
-	--tag-display-limit 0 > $result_dir/$dir_format/checks/lintian 2>&1
+	--tag-display-limit 0 > $result_dir/$dir_format/checks/lintian 2>&1 || true
 
-	mkdir $result_dir/$dir_format/bin
-	# *deb: `udeb` and `deb`
 	mv $result_dir/$dir_format/*deb $result_dir/$dir_format/bin
-
 	find $result_dir/$dir_format -type f -exec chmod 644 {} +
 	chown -R $SUDO_USER: $result_dir/$dir_format
 }
