@@ -15,8 +15,8 @@ if (( $1 )); then
 else
 cat << EOF
 $(echo -e "\e[96mUsage: $(basename $0) [options]\e[0m")
-Script wrapper for pdebuild, pbuilder, debootstrap.
-Build a Debian package in a chroot with some checks.
+Script wrapper for pdebuild, pbuilder, and debootstrap.
+Builds a Debian package for the amd64 architecture in a chroot environment.
 
   Options:
   --mirror [suite]                           create system from 'http://deb.debian.org/debian' URL
@@ -26,6 +26,7 @@ Build a Debian package in a chroot with some checks.
   --build [path-to-tgz]                      default build package without tests (nocheck)
   --build [path-to-tgz] with-tests           default build package with tests
   --build-debug [path-to-tgz]                package build with including debug symbols
+  --build-with-checks [path-to-tgz]          default build package with debian checks
 
 EOF
 
@@ -128,17 +129,18 @@ _pdebuild()
 post_build_tasks()
 {
 	mkdir $result_dir/$dir_format/checks
-	duck > $result_dir/$dir_format/checks/duck 2>&1 >/dev/null || true
-	licensecheck . > $result_dir/$dir_format/checks/licensecheck || true
+	duck > $result_dir/$dir_format/checks/duck 2>&1 || true
+	uscan > $result_dir/$dir_format/checks/uscan 2>&1 || true
+	licensecheck . > $result_dir/$dir_format/checks/licensecheck 2>&1 || true
 
 	blhc --all --debian --arch=amd64 ../*amd64.build > \
-	$result_dir/$dir_format/checks/blhc || true
+	$result_dir/$dir_format/checks/blhc 2>&1 || true
 
 	# before lintian - avoid EACCESS
 	chown -R $SUDO_USER: $result_dir/$dir_format
 
 	sudo -u $SUDO_USER lintian -i -I --show-overrides $result_dir/$dir_format/*amd64.changes \
-	--tag-display-limit 0 > $result_dir/$dir_format/checks/lintian
+	--tag-display-limit 0 > $result_dir/$dir_format/checks/lintian 2>&1
 
 	mkdir $result_dir/$dir_format/bin
 	# *deb: `udeb` and `deb`
@@ -175,12 +177,11 @@ case $1 in
 		# not run tests
 		export DEB_BUILD_OPTIONS='nocheck'
 
-		if [ $3 == "with-tests" ]; then
+		if [ "$3" == "with-tests" ]; then
 			unset DEB_BUILD_OPTIONS
 		fi
 
 		_pdebuild $2
-		post_build_tasks
 	;;
 
 	"--build-debug")
@@ -192,10 +193,23 @@ case $1 in
 		# debug - enable debug info
 		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug'
 		_pdebuild $2
-		post_build_tasks
 
 		touch $result_dir/$dir_format/bin/DEBUG
 		chown $SUDO_USER: $result_dir/$dir_format/bin/DEBUG
+	;;
+
+	"--build-with-checks")
+		[ -z $2 ] && usage 1
+
+		# not run tests
+		export DEB_BUILD_OPTIONS='nocheck'
+
+		if [ "$3" == "with-tests" ]; then
+			unset DEB_BUILD_OPTIONS
+		fi
+
+		_pdebuild $2
+		post_build_tasks
 	;;
 
 	"-h"|"--help")

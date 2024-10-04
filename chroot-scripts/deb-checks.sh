@@ -9,11 +9,11 @@ mkdir chroot-checks
 dsc=$(ls *.dsc)
 package=$(echo $dsc | awk -F_ '{print $1}')
 
-debi *amd64.changes > chroot-checks/debi || true
-adequate $package > chroot-checks/adequate || true
-hardening-check $(which $package) > chroot-checks/hardening-check || true
+debi *amd64.changes > chroot-checks/debi 2>&1 || true
+adequate $package > chroot-checks/adequate 2>&1 || true
+hardening-check $(which $package) > chroot-checks/hardening-check 2>&1 || true
 sudo -u $SUDO_USER lintian -i -I --show-overrides *amd64.changes \
---tag-display-limit 0 > chroot-checks/lintian
+--tag-display-limit 0 > chroot-checks/lintian 2>&1
 
 mv *deb bin
 
