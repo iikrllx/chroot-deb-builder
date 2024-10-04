@@ -74,7 +74,6 @@ create_chroot()
 
 	cp /usr/local/bin/chroot-env.sh $target/usr/local/bin
 	cp /usr/local/bin/deb-checks.sh $target/usr/local/bin
-	chmod 755 $target/usr/local/bin/deb-checks.sh
 	cp /etc/hosts $target/etc
 	mount_staff $target
 }
