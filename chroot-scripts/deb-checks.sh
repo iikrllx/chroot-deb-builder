@@ -25,5 +25,15 @@ piuparts -d bookworm --install-recommends --warn-on-others \
 piuparts -d bookworm -d sid --install-recommends --warn-on-others \
 --warn-on-leftovers-after-purge $changes > chroot-checks/piuparts-bookworm-sid 2>&1 || true
 
+dpkg-source -x $dsc
+mkdir tmp
+mv $package-* tmp
+cd tmp/$package-*
+apt-get -y build-dep . >/dev/null
+export DEB_BUILD_OPTIONS='nocheck'
+dpkg-depcheck -b dpkg-buildpackage -b -uc > ../../chroot-checks/dpkg-depcheck 2>&1 || true
+sed -ni '/Packages needed:/,$p' ../../chroot-checks/dpkg-depcheck
+cd -; rm -rf tmp
+
 mv *deb bin
 chown -R $SUDO_USER: chroot-checks
