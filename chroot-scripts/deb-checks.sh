@@ -13,6 +13,7 @@ package=$(echo $dsc | awk -F_ '{print $1}')
 debi $changes > chroot-checks/debi 2>&1 || true
 adequate $package > chroot-checks/adequate 2>&1 || true
 hardening-check $(which $package) > chroot-checks/hardening-check 2>&1 || true
+blhc --all --debian --arch=amd64 *amd64.build > chroot-checks/blhc 2>&1 || true
 sudo -u $SUDO_USER lintian -i -I --show-overrides $changes \
 --tag-display-limit 0 > chroot-checks/lintian 2>&1 || true
 
