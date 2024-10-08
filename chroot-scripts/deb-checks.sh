@@ -2,7 +2,7 @@
 
 set -ex
 
-mv bin/* .
+mv bin/*deb .
 rm -rf chroot-checks
 mkdir chroot-checks
 
@@ -27,9 +27,8 @@ piuparts -d bookworm -d sid --install-recommends --warn-on-others \
 --warn-on-leftovers-after-purge $changes > chroot-checks/piuparts-bookworm-sid 2>&1 || true
 
 dpkg-source -x $dsc
-mkdir tmp
-mv $package-* tmp
-cd tmp/$package-*
+sdir=$(find . -type d -name "$package*")
+mkdir tmp; mv $sdir tmp; cd tmp/$sdir
 apt-get -y build-dep . >/dev/null
 export DEB_BUILD_OPTIONS='nocheck'
 dpkg-depcheck -b dpkg-buildpackage -b -uc > ../../chroot-checks/dpkg-depcheck 2>&1 || true
