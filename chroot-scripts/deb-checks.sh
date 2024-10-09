@@ -27,7 +27,7 @@ piuparts -d bookworm -d sid --install-recommends --warn-on-others \
 --warn-on-leftovers-after-purge $changes > chroot-checks/piuparts-bookworm-sid 2>&1 || true
 
 dpkg-source -x $dsc
-sdir=$(find . -type d -name "$package*")
+sdir=$(find . -maxdepth 1 -type d -name "$package*")
 mkdir tmp; mv $sdir tmp; cd tmp/$sdir
 apt-get -y build-dep . >/dev/null
 export DEB_BUILD_OPTIONS='nocheck'
