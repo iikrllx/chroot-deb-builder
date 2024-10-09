@@ -111,7 +111,7 @@ _pdebuild()
 	echo $1 > $result_dir/$dir_format/bin/chroot
 
 	chown $SUDO_USER: $(find ../ -maxdepth 1 -type f)
-	cp ../*orig.tar.* $result_dir/$dir_format
+	cp ../*orig.tar.* $result_dir/$dir_format || true
 	cp ../*amd64.build $result_dir/$dir_format
 
 	chown -R $SUDO_USER: $result_dir/$dir_format
