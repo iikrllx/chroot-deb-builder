@@ -177,7 +177,8 @@ case $1 in
 		[ -z $2 ] && usage 1
 
 		# not run tests
-		export DEB_BUILD_OPTIONS='nocheck'
+		# without dbgsym packages
+		export DEB_BUILD_OPTIONS='nocheck noddebs'
 
 		if [ "$3" == "with-tests" ]; then
 			unset DEB_BUILD_OPTIONS
@@ -204,7 +205,8 @@ case $1 in
 		[ -z $2 ] && usage 1
 
 		# not run tests
-		export DEB_BUILD_OPTIONS='nocheck'
+		# without dbgsym packages
+		export DEB_BUILD_OPTIONS='nocheck noddebs'
 
 		if [ "$3" == "with-tests" ]; then
 			unset DEB_BUILD_OPTIONS
