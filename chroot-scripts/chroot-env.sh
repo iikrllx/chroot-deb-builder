@@ -3,8 +3,8 @@
 set -ex
 
 cat << EOF > /etc/apt/sources.list
-deb http://deb.debian.org/debian $1 main contrib non-free
-deb-src http://deb.debian.org/debian $1 main contrib non-free
+deb http://deb.debian.org/debian $1 main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian $1 main contrib non-free non-free-firmware
 EOF
 
 packages=(dialog sudo locales vim mc gcc make bash-completion xsel \
