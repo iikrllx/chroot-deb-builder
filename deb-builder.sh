@@ -178,7 +178,7 @@ case $1 in
 
 		# not run tests
 		# without dbgsym packages
-		export DEB_BUILD_OPTIONS='nocheck noddebs'
+		export DEB_BUILD_OPTIONS='nocheck noddebs parallel=3'
 
 		if [ "$3" == "with-tests" ]; then
 			unset DEB_BUILD_OPTIONS
@@ -194,7 +194,7 @@ case $1 in
 		# noopt - O0
 		# nostrip - debug symbols have
 		# debug - enable debug info
-		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug'
+		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug parallel=3'
 		_pdebuild $2
 
 		touch $result_dir/$dir_format/bin/DEBUG
@@ -206,7 +206,7 @@ case $1 in
 
 		# not run tests
 		# without dbgsym packages
-		export DEB_BUILD_OPTIONS='nocheck noddebs'
+		export DEB_BUILD_OPTIONS='nocheck noddebs parallel=3'
 
 		if [ "$3" == "with-tests" ]; then
 			unset DEB_BUILD_OPTIONS
