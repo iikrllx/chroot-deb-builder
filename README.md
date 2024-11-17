@@ -84,11 +84,7 @@ $ sudo deb-checks.sh
 ```
 
 ## Removal
-If you didn't like this project, remove its files as follows:
+If you don't need these scripts, remove them as follows:
 ```
 $ ./install-uninstall.sh uninstall
 ```
-
-## License
-This project is licensed under the GPLv3 License - see the
-[LICENSE](https://github.com/iikrllx/chroot-deb-builder/blob/master/LICENSE) file for details.
