@@ -103,7 +103,7 @@ _pdebuild()
 	dir_format=$(date "+D:%d-%m-%y+T:%T")
 	result_dir=/var/cache/pbuilder/result
 
-	pdebuild --debbuildopts --source-option='-itags' \
+	pdebuild --debbuildopts --source-option='-itags -i' \
 	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
 
 	mkdir $result_dir/$dir_format/bin
