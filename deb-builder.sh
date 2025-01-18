@@ -139,6 +139,7 @@ post_build_tasks()
 	duck > $result_dir/$dir_format/checks/duck 2>&1 || true
 	uscan > $result_dir/$dir_format/checks/uscan 2>&1 || true
 	licensecheck . > $result_dir/$dir_format/checks/licensecheck 2>&1 || true
+	lrc > $result_dir/$dir_format/checks/lrc 2>&1 || true
 
 	blhc --all --debian --arch=amd64 ../*amd64.build > \
 	$result_dir/$dir_format/checks/blhc 2>&1 || true
