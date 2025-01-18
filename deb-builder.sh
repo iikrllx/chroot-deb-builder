@@ -181,7 +181,7 @@ case $1 in
 		export DEB_BUILD_OPTIONS='nocheck noddebs parallel=3'
 
 		if [ "$3" == "with-tests" ]; then
-			unset DEB_BUILD_OPTIONS
+			export DEB_BUILD_OPTIONS='noddebs parallel=3'
 		fi
 
 		_pdebuild $2
