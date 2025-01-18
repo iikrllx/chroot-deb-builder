@@ -1,21 +1,18 @@
-<a href="https://github.com/iikrllx/chroot-deb-builder/tree/master">
-    <img src="https://img.shields.io/badge/scripts%20for%20maintainers-blue?style=flat&logo=Debian&logoColor=CE0056&labelColor=white">
-</a>
-
-# chroot-deb-builder
-Builds a Debian package for the amd64 architecture in a chroot environment. Maintainers usually do
-not build packages on their host machines, but do it in chroots. The ```deb-builder.sh``` script is
-a wrapper around ```pbuilder```, ```pdebuild``` and ```debootstrap``` (excellent tools that automate
-the package building process and chroot creation). ```deb-builder.sh``` combines these tools into
-one. After the package is successfully built, the script proceeds to run various tools to verify and
-ensure the quality of the package. These checks help maintainers ensure that the package is
-compliant with Debian standards and is free from common issues before it is uploaded to the
-repository.
+# chroot-debianizer
+Builds a Debian package for the amd64 architecture in a chroot environment.
+Maintainers usually do not build packages on their host machines, but do it in
+chroots. The ```deb-builder.sh``` script is a wrapper around ```pbuilder```,
+```pdebuild``` and ```debootstrap``` (excellent tools that automate the package
+building process and chroot creation). ```deb-builder.sh``` combines these tools
+into one. After the package is successfully built, the script proceeds to run
+various tools to verify and ensure the quality of the package. These checks help
+maintainers ensure that the package is compliant with Debian standards and is
+free from common issues before it is uploaded to the repository.
 
 ## Cloning and installing
 ```
-$ git clone https://github.com/iikrllx/chroot-deb-builder.git
-$ cd chroot-deb-builder
+$ git clone https://github.com/iikrllx/chroot-debianizer.git
+$ cd chroot-debianizer
 $ sudo ./install-uninstall.sh install
 ```
 
