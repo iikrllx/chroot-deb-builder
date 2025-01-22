@@ -1,0 +1,5 @@
+debian/.debhelper/
+debian/chroot-debianizer.substvars
+debian/chroot-debianizer/
+debian/debhelper-build-stamp
+debian/files

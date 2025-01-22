@@ -1,0 +1,25 @@
+Source: chroot-debianizer
+Section: utils
+Priority: optional
+Maintainer: Kirill Rekhov <krekhov.dev@gmail.com>
+Rules-Requires-Root: no
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/iikrllx/chroot-debianizer
+
+Package: chroot-debianizer
+Architecture: all
+Depends: ${misc:Depends},
+         pbuilder,
+         debootstrap,
+         blhc,
+         duck,
+         lintian,
+         devscripts,
+         licensecheck,
+         licenserecon
+Description: Tool that automates routine work with Debian packages
+ This is a wrapper script around pbuilder, pdebuild, and debootstrap.
+ It creates a chroot environment for the amd64 architecture and builds
+ a deb package within it. The utility checks that the deb package complies
+ with Debian Policy standards.

@@ -1,0 +1,98 @@
+.TH chroot-debianizer 1 "January 2025" "1.0.0-1" "chroot-debianizer"
+.SH NAME
+chroot-debianizer \- automates Debian package tasks
+.SH SYNOPSIS
+.B chroot-debianizer
+[\fIOPTIONS\fR] [\fIARGUMENTS\fR]
+.SH DESCRIPTION
+Tool that automates routine work with Debian packages.\&
+This is a wrapper script around
+.BR "pbuilder" ,
+.BR "pdebuild"
+and
+.BR "debootstrap" .\&
+It creates a chroot environment for the
+.BR amd64
+architecture and builds a deb package within it.\&
+The utility checks that the deb package complies with Debian Policy standards.
+.SH OPTIONS
+.TP
+.B \-\-mirror [suite]
+Create a chroot from the Debian mirror.
+.TP
+.B \-\-iso [suite] [path-to-iso]
+Create a chroot from an ISO file.
+.TP
+.B \-\-login [path-to-tgz]
+Login to tgz.
+.TP
+.B \-\-login-save [path-to-tgz]
+Login to tgz with save mode.
+.TP
+.B \-\-build [path-to-tgz]
+Build package without tests.
+.TP
+.B \-\-build [path-to-tgz] with-tests
+Build package with tests.
+.TP
+.B \-\-build-debug [path-to-tgz]
+Build package with debug symbols.
+.TP
+.B \-\-build-with-checks [path-to-tgz]
+Build package with Debian checks.
+.TP
+.B \-h, \-\-help
+Display usage information and exit.
+.SH EXAMPLES
+NOTE: Scripts such as
+.BR chroot-debianizer
+and
+.BR deb-checks.sh
+are executed with superuser rights.
+.SS To create a chroot for the amd64 architecture from the Debian mirror:
+$ chroot-debianizer --mirror sid
+.SS
+Check the created chroot:
+$ ls /var/cache/pbuilder/sid-chroot.tgz
+.SS Prepare the sources:
+$ mkdir sources; cd sources
+.br
+$ apt-get source hello
+.br
+$ cd hello-2.10
+.SS Build the package with Debian checks:
+$ chroot-debianizer --build-with-checks /var/cache/pbuilder/sid-chroot.tgz
+.SS Check the results:
+$ ls /var/cache/pbuilder/result/last/
+.br
+$ ls /var/cache/pbuilder/result/last/bin/
+.br
+$ ls /var/cache/pbuilder/result/last/checks/
+.P
+The last actual build: /var/cache/pbuilder/result/last
+.br
+The penultimate build: /var/cache/pbuilder/result/prelast
+.SS Login to the chroot environment:
+$ chroot-debianizer --login /var/cache/pbuilder/sid-chroot.tgz
+.SS From another terminal, copy files to the chroot:
+$ cp -r /var/cache/pbuilder/result/last/* /var/cache/pbuilder/build/<pid>/home/builder/sources/
+.SS Return to the original terminal and run additional checks like piuparts, hardening-check, adequate, etc:
+$ deb-checks.sh
+.SH AUTHOR
+Kirill Rekhov <krekhov.dev@gmail.com>
+.SH SEE ALSO
+Here is a list of utilities that
+.B chroot-debianizer
+uses:
+.P
+pbuilder(8), pdebuild(1), debootstrap(8), lintian(1), duck(1), uscan(1),
+licensecheck(1), lrc(1), blhc(1), debi(1), adequate(1), hardening-check(1),
+piuparts(1), dpkg-depcheck(1).
+.SH COPYRIGHT
+Copyright © 2025 Kirill Rekhov. License GPLv2+: GNU GPL version 2 or later <https://gnu.org/licenses/gpl-2.0.html>.
+.br
+This is free software: you are free to change and redistribute it. There is NO WARRANTY, to the extent permitted by law.
+.SH AVAILABILITY
+The latest version of this utility can be found at https://github.com/iikrllx/chroot-debianizer/releases
+.SH REPORTING BUGS
+If you want to report a problem with the utility, please send an email to <krekhov.dev@gmail.com>

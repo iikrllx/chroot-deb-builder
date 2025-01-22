@@ -1,0 +1,5 @@
+chroot-debianizer (1.0.0-1) UNRELEASED; urgency=medium
+
+  * Initial release.
+
+ -- Kirill Rekhov <krekhov.dev@gmail.com>  Mon, 20 Jan 2025 22:21:10 +0300

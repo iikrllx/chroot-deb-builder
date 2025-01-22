@@ -1,0 +1,358 @@
+#!/usr/bin/env bash
+
+if [ -e /etc/debian_chroot ]; then
+	>&2 echo -e "\e[91mERROR (!) Should not be run in a chroot environment\e[0m"
+	exit 1
+fi
+
+usage()
+{
+if (( $1 )); then
+	>&2 echo "Try '$(basename $0) --help' for more information"
+	exit 1
+else
+cat << EOF
+$(echo -e "\e[96mUsage: $(basename $0) [options]\e[0m")
+Wrapper script around pbuilder, pdebuild and debootstrap.
+Create a chroot for the amd64 and build a deb package within it.
+Ensure the deb package meets Debian Policy standards.
+
+  Options:
+  --mirror [suite]                         create a chroot from the Debian mirror
+  --iso [suite] [path-to-iso]              create a chroot from an ISO file
+  --login [path-to-tgz]                    login to tgz
+  --login-save [path-to-tgz]               login to tgz with save mode
+  --build [path-to-tgz]                    build package without tests
+  --build [path-to-tgz] with-tests         build package with tests
+  --build-debug [path-to-tgz]              build package with debug symbols
+  --build-with-checks [path-to-tgz]        build package with Debian checks
+  --help                                   display usage information and exit
+
+EOF
+
+exit 0
+fi
+}
+
+debootstrap_target()
+{
+	trap 'rm -rf $target; umount /media/cdrom &>/dev/null' SIGINT ERR
+	debootstrap --no-check-gpg --components=main,contrib,non-free --arch=amd64 $suite $target $1
+}
+
+mount_staff()
+{
+	mount --bind /dev $1/dev
+	mount --bind /dev/pts $1/dev/pts
+	mount --bind /proc $1/proc
+	mount --bind /sys $1/sys
+}
+
+umount_staff()
+{
+	for mp in proc dev/pts dev sys; do
+		umount $1/$mp &>/dev/null
+	done
+}
+
+write_deb_checks_script()
+{
+cat << \EOF > $target/usr/local/sbin/deb-checks.sh
+#!/bin/sh
+
+set -ex
+
+mv bin/*deb .
+rm -rf chroot-checks
+mkdir chroot-checks
+
+dsc=$(ls *.dsc)
+changes=$(ls *amd64.changes)
+package=$(echo $dsc | awk -F_ '{print $1}')
+
+debi $changes > chroot-checks/debi 2>&1 || true
+adequate $package > chroot-checks/adequate 2>&1 || true
+hardening-check $(which $package) > chroot-checks/hardening-check 2>&1 || true
+sudo -u $SUDO_USER lintian -i -I --show-overrides $changes \
+--tag-display-limit 0 > chroot-checks/lintian 2>&1 || true
+
+piuparts -d sid --install-recommends --warn-on-others \
+--warn-on-leftovers-after-purge $changes > chroot-checks/piuparts-sid 2>&1 || true
+
+piuparts -d bookworm --install-recommends --warn-on-others \
+--warn-on-leftovers-after-purge $changes > chroot-checks/piuparts-bookworm 2>&1 || true
+
+piuparts -d bookworm -d sid --install-recommends --warn-on-others \
+--warn-on-leftovers-after-purge $changes > chroot-checks/piuparts-bookworm-sid 2>&1 || true
+
+dpkg-source -x $dsc
+sdir=$(find . -maxdepth 1 -type d -name "$package*")
+mkdir tmp; mv $sdir tmp; cd tmp/$sdir
+apt-get -y build-dep . >/dev/null
+export DEB_BUILD_OPTIONS='nocheck noddebs parallel=2'
+dpkg-depcheck -b dpkg-buildpackage -b -uc > ../../chroot-checks/dpkg-depcheck 2>&1 || true
+sed -ni '/Packages needed:/,$p' ../../chroot-checks/dpkg-depcheck
+cd -; rm -rf tmp
+
+mv *deb bin
+chown -R $SUDO_USER: chroot-checks
+EOF
+}
+
+write_chroot_env_script()
+{
+cat << \OUTER_EOF > $target/usr/local/sbin/chroot-env.sh
+#!/bin/bash
+
+set -ex
+
+cat << EOF > /etc/apt/sources.list
+deb http://deb.debian.org/debian $1 main contrib non-free non-free-firmware
+deb-src http://deb.debian.org/debian $1 main contrib non-free non-free-firmware
+EOF
+
+packages=(sudo locales vim mc gcc make bash-completion xsel dialog \
+build-essential dpkg-dev devscripts debhelper dh-make fakeroot \
+eatmydata aptitude apt-file lintian adequate piuparts)
+
+apt-get update
+for pack in ${packages[*]}; do
+	if ! dpkg -l | awk '{print $2}' | grep ^$pack$ &>/dev/null; then
+		DEBIAN_FRONTEND=noninteractive apt-get -y install $pack
+	fi
+done
+
+user=builder pass=1
+useradd -m $user -s /bin/bash
+echo "$user:1" | chpasswd 2>/dev/null
+echo "$user ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+for loc in en_US.UTF-8 ru_RU.UTF-8; do
+	if ! grep ^$loc /etc/locale.gen &>/dev/null; then
+		echo "$loc UTF-8" | sudo tee -a /etc/locale.gen
+		locale-gen
+	fi
+done
+
+# enable bash completion
+perl -i -pe '$i++ if /^#if ! shopt -oq posix;/; s/^#// if $i==1; $i=0 if /^fi/' /etc/bash.bashrc
+
+# add suite to prompt
+echo $1 > /etc/debian_chroot
+chmod 644 /etc/debian_chroot
+
+echo >> /etc/bash.bashrc
+echo "alias mc='mc -S gotar'" >> /etc/bash.bashrc
+echo "TERM=xterm-256color" >> /etc/bash.bashrc
+
+cat << \INNER_EOF >> /home/$user/.bashrc
+
+export LANG=en_US.UTF8
+export LC_ALL=en_US.UTF-8
+export EDITOR='/usr/bin/vim'
+export HISTCONTROL=ignoredups
+export DEBEMAIL=krekhov.dev@gmail.com
+export DEBFULLNAME="Kirill Rekhov"
+
+alias cc='xsel -p -c; xsel -b -c' # clear primary/clipboard selections
+alias daterc='date -R | xsel -b -i' # input date (RFC 5322) to clipboard (for changelog)
+alias _date='date +"%d/%m/%Y - %H:%M:%S"' # simple format
+alias ls='ls -1l --group-directories-first -hN --color'
+alias la='ls -A --color'
+alias v='vim'
+alias c='cd ~/'
+alias s='cd ~/sources'
+alias a='sudo aptitude'
+alias brc='vim ~/.bashrc'
+alias grep='grep --color'
+alias diff='diff --color'
+alias rm='rm -v'
+alias cp='cp -vi'
+alias mv='mv -vi'
+alias mkdir='mkdir -v'
+alias rcd='cd $(mktemp -d)'
+
+# touch file with verbose mode =)
+vtouch()
+{
+    for i do
+        touch "$i"
+        [ $? == 0 ] && echo "touched: '$i'"
+    done
+} && alias touch='vtouch'
+
+INNER_EOF
+
+mkdir /home/$user/sources
+chown $user: /home/$user/sources
+OUTER_EOF
+}
+
+create_chroot()
+{
+	suite="$2"
+	iso_name="${3##*/}"
+
+	[ -z $iso_name ] && target="/$suite-chroot${iso_name/.iso}" || \
+	target="/$suite-chroot-${iso_name/.iso}"
+
+	if mount | grep $target &>/dev/null; then
+		>&2 echo -e "\e[91mERROR (!) chroot '$target' already to use\e[0m"
+		exit 1
+	fi
+
+	if [ ! -d $target ]; then
+		if [ "$1" == "--mirror" ]; then
+			debootstrap_target "http://deb.debian.org/debian"
+		else
+			mount $3 /media/cdrom
+			debootstrap_target "file:///media/cdrom"
+			umount /media/cdrom
+		fi
+	fi
+
+	# script for configure environment in chroot
+	write_chroot_env_script
+	chmod +x $target/usr/local/sbin/chroot-env.sh
+
+	# script for internal tests in chroot
+	# need to copy /var/cache/pbuilder/last/* to the user home 'builder'
+	# directory, go to it and executed `deb-checks.sh`
+	write_deb_checks_script
+	chmod +x $target/usr/local/sbin/deb-checks.sh
+
+	cp /etc/hosts $target/etc
+	mount_staff $target
+}
+
+init_chroot()
+{
+	create_chroot $1 $2 $3
+
+	trap 'umount_staff $target' SIGINT ERR
+	LANG=C chroot $target chroot-env.sh $suite
+	umount_staff $target
+
+	[ -e /var/cache/pbuilder${target}.tgz ] && rm /var/cache/pbuilder${target}.tgz
+	cd $target; tar -cvzf /var/cache/pbuilder${target}.tgz *
+	[ -e /var/cache/pbuilder${target}.tgz ] && rm -rf $target
+}
+
+pdebuild_with_arrange()
+{
+	dir_format=$(date "+D:%d-%m-%y+T:%T")
+	result_dir=/var/cache/pbuilder/result
+
+	pdebuild --debbuildopts --source-option='-itags -i' \
+	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
+
+	mkdir $result_dir/$dir_format/bin
+	mv $result_dir/$dir_format/*deb $result_dir/$dir_format/bin
+	echo $1 > $result_dir/$dir_format/bin/chroot
+
+	chown $SUDO_USER: $(find ../ -maxdepth 1 -type f)
+
+	current_dir=$(basename $(pwd))
+	dir_name_no_version=$(echo "$current_dir" | sed 's/-[0-9.]*$//')
+	cp ../*${dir_name_no_version}*amd64.build $result_dir/$dir_format
+	cp ../*${dir_name_no_version}*orig.tar.* $result_dir/$dir_format
+
+	chown -R $SUDO_USER: $result_dir/$dir_format
+	find $result_dir/$dir_format -type f -exec chmod 644 {} +
+
+	for link in last prelast; do
+		[ -L $result_dir/$link ] && rm $result_dir/$link
+	done
+
+	# get recently added dirs
+	ldir=$(find /var/cache/pbuilder/result/* -maxdepth 0 -type d -exec ls -1td {} +)
+
+	ln -s $(basename $(echo "$ldir" | head -1)) $result_dir/last
+	if (( $(echo "$ldir" | wc -l) > 1 )); then
+		ln -s $(basename $(echo "$ldir" | sed -n 2p)) $result_dir/prelast
+	fi
+}
+
+# follow debian policy recommendations using tools
+post_build_checks()
+{
+	mkdir $result_dir/$dir_format/checks
+	duck > $result_dir/$dir_format/checks/duck 2>&1 || true
+	uscan > $result_dir/$dir_format/checks/uscan 2>&1 || true
+	licensecheck . > $result_dir/$dir_format/checks/licensecheck 2>&1 || true
+	lrc > $result_dir/$dir_format/checks/lrc 2>&1 || true
+
+	blhc --all --debian --arch=amd64 ../*amd64.build > \
+	$result_dir/$dir_format/checks/blhc 2>&1 || true
+
+	mv $result_dir/$dir_format/bin/*deb $result_dir/$dir_format
+	sudo -u $SUDO_USER lintian -i -I --show-overrides $result_dir/$dir_format/*amd64.changes \
+	--tag-display-limit 0 > $result_dir/$dir_format/checks/lintian 2>&1 || true
+
+	mv $result_dir/$dir_format/*deb $result_dir/$dir_format/bin
+	find $result_dir/$dir_format -type f -exec chmod 644 {} +
+	chown -R $SUDO_USER: $result_dir/$dir_format
+}
+
+case $1 in
+	"--mirror")
+		[ $# != 2 ] && usage 1
+		init_chroot $1 $2
+	;;
+
+	"--iso")
+		[ $# != 3 ] && usage 1
+		init_chroot $1 $2 $3
+	;;
+
+	"--login")
+		[ $# != 2 ] && usage 1
+		pbuilder --login --basetgz $2
+	;;
+
+	"--login-save")
+		[ $# != 2 ] && usage 1
+		pbuilder --login --save-after-login --basetgz $2
+	;;
+
+	# nocheck   - not run tests
+	# noopt     - O0
+	# debug     - enable debug info
+	# nostrip   - debug symbols have
+	# noddebs   - do not create debug symbol packages
+	# parallel  - enable parallel build (3 parallel threads)
+
+	"--build")
+		[ -z $2 ] && usage 1
+
+		export DEB_BUILD_OPTIONS='nocheck noddebs parallel=3'
+		[ "$3" == "with-tests" ] && export DEB_BUILD_OPTIONS='noddebs parallel=3'
+		pdebuild_with_arrange $2
+	;;
+
+	"--build-debug")
+		[ -z $2 ] && usage 1
+
+		export DEB_BUILD_OPTIONS='nocheck noopt nostrip debug parallel=3'
+		pdebuild_with_arrange $2
+
+		touch $result_dir/$dir_format/bin/DEBUG
+		chown $SUDO_USER: $result_dir/$dir_format/bin/DEBUG
+	;;
+
+	"--build-with-checks")
+		[ -z $2 ] && usage 1
+
+		export DEB_BUILD_OPTIONS='nocheck noddebs parallel=3'
+		pdebuild_with_arrange $2
+		post_build_checks
+	;;
+
+	"-h"|"--help")
+		usage 0
+	;;
+
+	*)
+		usage 1
+	;;
+esac

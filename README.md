@@ -1,87 +1,97 @@
 # chroot-debianizer
-Builds a Debian package for the amd64 architecture in a chroot environment.
-Maintainers usually do not build packages on their host machines, but do it in
-chroots. The ```deb-builder.sh``` script is a wrapper around ```pbuilder```,
-```pdebuild``` and ```debootstrap``` (excellent tools that automate the package
-building process and chroot creation). ```deb-builder.sh``` combines these tools
-into one. After the package is successfully built, the script proceeds to run
+```chroot-debianizer``` is a tool that automates routine work with Debian
+packages. Recognizing that maintainers typically do not build packages on their
+host machines, ```chroot-debianizer``` builds packages in chroot environments
+for the amd64 architecture to ensure a clean and isolated process. This script
+serves as a wrapper around ```pbuilder```, ```pdebuild```, and
+```debootstrap```, combining these excellent tools into one streamlined
+workflow. After the package is successfully built, ```chroot-debianizer``` runs
 various tools to verify and ensure the quality of the package. These checks help
-maintainers ensure that the package is compliant with Debian standards and is
-free from common issues before it is uploaded to the repository.
+maintainers ensure that the package is compliant with Debian standards and free
+from common issues before it is uploaded to the repository. I was not satisfied
+with the pbuilder hooks, which led me to create my own tool.
 
 ## Cloning and installing
+Need information...
+
+## Examples
+NOTE: Scripts such as ```chroot-debianizer``` and ```deb-checks.sh``` are
+executed with superuser rights.
+
+Usage information:
 ```
-$ git clone https://github.com/iikrllx/chroot-debianizer.git
-$ cd chroot-debianizer
-$ sudo ./install-uninstall.sh install
+$ chroot-debianizer --help
+$ man chroot-debianizer
 ```
 
-## Testing
-Bootstrap Debian Bookworm:
+Create a chroot from the Debian mirror:
 ```
-$ sudo deb-builder.sh --mirror bookworm
-```
-
-Bootstrap a chroot from ISO file:
-```
-$ sudo deb-builder.sh --iso <suite> /path/to/my/iso
+$ chroot-debianizer --mirror bookworm
 ```
 
-Example of building a Debian package:
+Create a chroot from an ISO file:
 ```
-$ mkdir -p ~/sources/coreutils
-$ cd ~/sources/coreutils
-$ apt-get source coreutils
-$ cd coreutils-9.1
+$ chroot-debianizer --iso bookworm ~/Downloads/debian-12.9.0-amd64-netinst.iso
 ```
 
-Usage description:
+Example of building a Debian package (prepare the sources):
 ```
-$ sudo deb-builder.sh --help
-```
-
-Default package build without tests (nocheck):
-```
-$ sudo deb-builder.sh --build /var/cache/pbuilder/bookworm-chroot.tgz
+$ mkdir sources; cd sources
+$ apt-get source hello
+$ cd hello-2.10
 ```
 
-Default package build with tests:
+Build package without tests (nocheck):
 ```
-$ sudo deb-builder.sh --build with-tests /var/cache/pbuilder/bookworm-chroot.tgz
-```
-
-Package build with including debug symbols:
-```
-$ sudo deb-builder.sh --build-debug /var/cache/pbuilder/bookworm-chroot.tgz
+$ chroot-debianizer --build /var/cache/pbuilder/bookworm-chroot.tgz
 ```
 
-Default package build with Debian checks (lintian, blhc, duck, etc.):
+Build package with tests:
 ```
-$ sudo deb-builder.sh --build-with-checks /var/cache/pbuilder/bookworm-chroot.tgz
+$ chroot-debianizer --build /var/cache/pbuilder/bookworm-chroot.tgz with-tests
 ```
 
-The packages will be in: ```/var/cache/pbuilder/result```<br/>
+Build package with debug symbols:
+```
+$ chroot-debianizer --build-debug /var/cache/pbuilder/bookworm-chroot.tgz
+```
+
+Build package with Debian checks like ```lintian```, ```blhc```, ```lrc```,
+```duck```, etc:
+```
+$ chroot-debianizer --build-with-checks /var/cache/pbuilder/bookworm-chroot.tgz
+```
+
+The packages will be in: ```/var/cache/pbuilder/result/last/bin```<br/>
 The last actual build: ```/var/cache/pbuilder/result/last```<br/>
 The penultimate build: ```/var/cache/pbuilder/result/prelast```<br/>
 
-Go to chroot:
+Login to tgz:
 ```
-$ sudo deb-builder.sh --login /var/cache/pbuilder/bookworm-chroot.tgz
-```
-
-Go to chroot with the save mode:
-```
-$ sudo deb-builder.sh --login-save /var/cache/pbuilder/bookworm-chroot.tgz
+$ chroot-debianizer --login /var/cache/pbuilder/bookworm-chroot.tgz
 ```
 
-Execute Debian checks within the chroot:
+Login to tgz with save mode:
 ```
-$ cd sources/<pbuilder-last-build>
-$ sudo deb-checks.sh
+$ chroot-debianizer --login-save /var/cache/pbuilder/bookworm-chroot.tgz
 ```
 
-## Removal
-If you don't need these scripts, remove them as follows:
+### Execute Debian checks within the chroot
+Perform more complex checks like ```piuparts```, ```hardening-check```,
+```adequate```, etc.
+
+First, log in to the chroot environment:
 ```
-$ ./install-uninstall.sh uninstall
+$ chroot-debianizer --login /var/cache/pbuilder/bookworm-chroot.tgz
+```
+
+From another terminal, copy files to the chroot:
+```
+$ cp -r /var/cache/pbuilder/result/last/* /var/cache/pbuilder/build/<pid>/home/builder/sources/
+```
+
+Return to the original terminal and run additional checks:
+```
+$ cd sources/<my-last-build>
+$ deb-checks.sh
 ```
