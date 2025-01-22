@@ -11,8 +11,11 @@ maintainers ensure that the package is compliant with Debian standards and free
 from common issues before it is uploaded to the repository. I was not satisfied
 with the pbuilder hooks, which led me to create my own tool.
 
-## Cloning and installing
-Need information...
+## Installation
+```
+$ curl -L -O https://github.com/iikrllx/chroot-debianizer/releases/download/v1.0.0-1/chroot-debianizer_1.0.0-1_all.deb
+$ sudo apt install -y ./chroot-debianizer_1.0.0-1_all.deb
+```
 
 ## Examples
 NOTE: Scripts such as ```chroot-debianizer``` and ```deb-checks.sh``` are
