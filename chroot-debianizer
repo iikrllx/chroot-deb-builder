@@ -245,6 +245,7 @@ pdebuild_with_arrange()
 
 	pdebuild --debbuildopts --source-option='-itags -i' \
 	-- --no-auto-cross --basetgz $1 --buildresult $result_dir/$dir_format 2>&1
+	[ $? != 0 ] && exit 1
 
 	mkdir $result_dir/$dir_format/bin
 	mv $result_dir/$dir_format/*deb $result_dir/$dir_format/bin
