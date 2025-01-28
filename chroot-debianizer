@@ -254,7 +254,7 @@ pdebuild_with_arrange()
 	chown $SUDO_USER: $(find ../ -maxdepth 1 -type f)
 
 	current_dir=$(basename $(pwd))
-	dir_name_no_version=$(echo "$current_dir" | sed 's/-[0-9.]*$//')
+	dir_name_no_version=$(echo "$current_dir" | sed 's/[-_]/\*/g')
 	cp ../*${dir_name_no_version}*amd64.build $result_dir/$dir_format
 	cp ../*${dir_name_no_version}*orig.tar.* $result_dir/$dir_format
 
