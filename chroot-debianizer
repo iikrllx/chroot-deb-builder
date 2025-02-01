@@ -111,7 +111,7 @@ deb http://deb.debian.org/debian $1 main contrib non-free non-free-firmware
 deb-src http://deb.debian.org/debian $1 main contrib non-free non-free-firmware
 EOF
 
-packages=(sudo locales vim mc gcc make bash-completion xsel dialog \
+packages=(sudo locales vim vifm mc gcc make bash-completion xsel dialog \
 build-essential dpkg-dev devscripts debhelper dh-make fakeroot \
 eatmydata aptitude apt-file lintian adequate piuparts)
 
@@ -157,22 +157,25 @@ export DEBFULLNAME="Kirill Rekhov"
 alias cc='xsel -p -c; xsel -b -c' # clear primary/clipboard selections
 alias daterc='date -R | xsel -b -i' # input date (RFC 5322) to clipboard (for changelog)
 alias _date='date +"%d/%m/%Y - %H:%M:%S"' # simple format
-alias ls='ls -1l --group-directories-first -hN --color'
-alias la='ls -A --color'
+alias ls='ls -1 --group-directories-first -N --color=auto'
+alias ll='ls -1l --group-directories-first -hN --color=auto'
+alias la='ls -A --color=auto'
+alias lla='ls -lA --group-directories-first -hN --color=auto'
 alias v='vim'
+alias vf='vifm'
 alias c='cd ~/'
 alias s='cd ~/sources'
 alias a='sudo aptitude'
 alias brc='vim ~/.bashrc'
-alias grep='grep --color'
-alias diff='diff --color'
+alias grep='grep --color=auto'
+alias diff='diff --color=auto'
 alias rm='rm -v'
 alias cp='cp -vi'
 alias mv='mv -vi'
 alias mkdir='mkdir -v'
 alias rcd='cd $(mktemp -d)'
 
-# touch file with verbose mode =)
+# touch file with verbose mode
 vtouch()
 {
     for i do
