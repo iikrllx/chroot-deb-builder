@@ -275,6 +275,8 @@ pdebuild_with_arrange()
 	if (( $(echo "$ldir" | wc -l) > 1 )); then
 		ln -s $(basename $(echo "$ldir" | sed -n 2p)) $result_dir/prelast
 	fi
+
+	echo -e "NOTE (!) The package has been successfully built. You can find it here: $result_dir/last"
 }
 
 # follow debian policy recommendations using tools
