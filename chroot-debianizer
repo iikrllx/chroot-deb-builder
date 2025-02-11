@@ -144,6 +144,7 @@ chmod 644 /etc/debian_chroot
 echo >> /etc/bash.bashrc
 echo "alias mc='mc -S gotar'" >> /etc/bash.bashrc
 echo "TERM=xterm-256color" >> /etc/bash.bashrc
+echo '[ $(id -u) == 0 ] && apt-get update' >> /etc/bash.bashrc
 
 cat << \INNER_EOF >> /home/$user/.bashrc
 
@@ -169,6 +170,7 @@ alias a='sudo aptitude'
 alias brc='vim ~/.bashrc'
 alias grep='grep --color=auto'
 alias diff='diff --color=auto'
+alias sl='sudo vim /etc/apt/sources.list'
 alias rm='rm -v'
 alias cp='cp -vi'
 alias mv='mv -vi'
