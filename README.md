@@ -13,8 +13,8 @@ with the pbuilder hooks, which led me to create my own tool.
 
 ## Installation
 ```
-$ curl -L -O https://github.com/iikrllx/chroot-debianizer/releases/download/v1.0.0-1/chroot-debianizer_1.0.0-1_all.deb
-$ sudo apt install -y ./chroot-debianizer_1.0.0-1_all.deb
+$ curl -L -O https://github.com/iikrllx/chroot-debianizer/releases/download/v1.1.0-1/chroot-debianizer_1.1.0-1_all.deb
+$ sudo apt install -y ./chroot-debianizer_1.1.0-1_all.deb
 ```
 
 ## Examples

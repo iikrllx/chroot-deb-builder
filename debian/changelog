@@ -1,3 +1,14 @@
+chroot-debianizer (1.1.0-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Add 'apt-get update' to /etc/bash.bashrc
+  * Add a message about successful package build
+  * If pdebuild command fails - do not continue code
+  * Update chroot environment (add some new aliases, packages)
+  * Refactor name handling by substituting `-` and `_` with `*` for improved flexibility.
+
+ -- Kirill Rekhov <krekhov.dev@gmail.com>  Tue, 11 Feb 2025 19:39:41 +0300
+
 chroot-debianizer (1.0.0-1) UNRELEASED; urgency=medium
 
   * Initial release.
