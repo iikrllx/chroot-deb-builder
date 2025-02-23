@@ -285,12 +285,14 @@ pdebuild_with_arrange()
 post_build_checks()
 {
 	mkdir $result_dir/$dir_format/checks
+	lrc > $result_dir/$dir_format/checks/lrc 2>&1 || true
 	duck > $result_dir/$dir_format/checks/duck 2>&1 || true
 	uscan > $result_dir/$dir_format/checks/uscan 2>&1 || true
-	licensecheck --recursive --copyright --lines 0 -- * > $result_dir/$dir_format/checks/licensecheck 2>&1 || true
-	lrc > $result_dir/$dir_format/checks/lrc 2>&1 || true
 
-	blhc --all --debian --arch=amd64 ../*amd64.build > \
+	licensecheck --recursive --copyright --lines 0 -- * > \
+	$result_dir/$dir_format/checks/licensecheck 2>&1 || true
+
+	blhc --all --debian --arch=amd64 $result_dir/$dir_format/*amd64.build > \
 	$result_dir/$dir_format/checks/blhc 2>&1 || true
 
 	mv $result_dir/$dir_format/bin/*deb $result_dir/$dir_format
